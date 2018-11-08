@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from scipy.stats import pearsonr
 
 def read():
 
@@ -111,4 +111,4 @@ if __name__ == '__main__':
 
     for i in range(2, x):
         print("pearson correlation coefficient: " + list[1] + " and " + list[i])
-        print(np.corrcoef(nparray[:,1].astype(float),nparray[:,i].astype(float)) * 0.5+0.5)
+        print(pearsonr(nparray[:,1].astype(float),nparray[:,i].astype(float)))
