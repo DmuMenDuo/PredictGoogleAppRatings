@@ -3,9 +3,10 @@ import pandas as pd
 from scipy.stats import pearsonr
 
 def read():
-
     return pd.read_csv('./google-play-store-apps/googleplaystore.csv')
 
+def readComment():
+    return pd.read_csv('./google-play-store-apps/googleplaystore_user_reviews.csv')
 
 def removeNaData():
 
@@ -103,8 +104,8 @@ if __name__ == '__main__':
     result["Rating"] = data["Rating"].astype('float32')
     print(result.info())
 
-    list = ["App","Rating","Category","Reviews","Size",
-                                "Installs","Type","Price","Content Rating","Genres"]
+    list = ["App", "Rating", "Category", "Reviews", "Size",
+                                "Installs", "Type", "Price","Content Rating","Genres"]
     nparray = result.as_matrix(list)
 
     x = nparray.shape[1]
@@ -112,3 +113,42 @@ if __name__ == '__main__':
     for i in range(2, x):
         print("pearson correlation coefficient: " + list[1] + " and " + list[i])
         print(pearsonr(nparray[:,1].astype(float),nparray[:,i].astype(float)))
+
+
+    # preprocessing Sentiment
+    data2 = readComment()
+    print(data2.info())
+    data2.dropna(axis=0, inplace=True)
+    print("--------after remove na ------")
+    print(data2.info())
+    print(data2.head())
+    result2 = data2.copy()
+    sentimentType = data2["Sentiment"].unique()
+    sentimentDict = {}
+    cont = 0
+    for type in sentimentType:
+        sentimentDict[type] = cont
+        cont += 1
+    result2["Sentiment"] = data2["Sentiment"].map(sentimentDict).astype(int)
+    print(result2)
+
+    demo = result2.groupby(["App", "Sentiment"]).count()
+    print(demo)
+    demo.reset_index(inplace=True)
+    demo2 = demo.loc[:, ["App", "Sentiment", "Translated_Review"]].copy()
+    print(demo2)
+    demo2.columns = ["App", "Sentiment", "Count"]
+    demo2 = demo2.pivot_table(index='App', columns='Sentiment',
+                           values="Count",fill_value=0).reset_index()
+    demo2.columns = ['App',"P","N","I"]
+    sentimentDataFrame = demo2
+    de = pd.merge(sentimentDataFrame,result[['App','Rating']],how='left',on=['App'],)
+    de = de.drop_duplicates()
+    de.dropna(axis=0, inplace=True)
+    print(de.groupby(["App"]).mean())
+    de.reset_index(inplace=True)
+
+    de.to_csv("sentiment.csv", encoding="utf-8")
+    result.to_csv("fisttable.csv", encoding="utf-8")
+
+
