@@ -118,11 +118,11 @@ if __name__ == '__main__':
     result["Rating"] = data["Rating"].astype('float32')
     print(result.info())
 
-    list = ["App", "Rating", "Category", "Reviews", "Size",
-                                "Installs", "Type", "Price","Content Rating","Genres"]
-    nparray = result.as_matrix(list)
-
-    x = nparray.shape[1]
+    # list = ["App", "Rating", "Category", "Reviews", "Size",
+    #                             "Installs", "Type", "Price","Content Rating","Genres"]
+    # nparray = result.as_matrix(list)
+    #
+    # x = nparray.shape[1]
 
     # for i in range(2, x):
     #     print("pearson correlation coefficient: " + list[1] + " and " + list[i])
