@@ -1,6 +1,20 @@
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr
+from scipy.stats import zscore
+import matplotlib.pyplot as pyplot
+
+def drawHist(x):
+    #创建散点图
+    #第一个参数为点的横坐标
+    #第二个参数为点的纵坐标
+    pyplot.hist(x, 100)
+    pyplot.xlabel('x')
+    pyplot.ylabel('y')
+    pyplot.title('gaosi')
+    pyplot.show()
 
 def read():
     return pd.read_csv('./google-play-store-apps/googleplaystore.csv')
@@ -52,20 +66,15 @@ if __name__ == '__main__':
     for type in categoryType:
         categoryDict[type] = cont
         cont += 1
-
-    result["Category"] = data["Category"].map(categoryDict).astype(int)
-    print(result["Category"])
+    result["CategoryTypeNumber"] = data["Category"].map(categoryDict).astype(int)
 
     # preprocessing Reviews
     result["Reviews"] = data["Reviews"].astype(int)
 
     # preprocessing Size
     result["Size"] = data["Size"].map(changeSize).astype('float32')
-
-
     # preprocessing Installs
     result["Installs"] = data["Installs"].map(changeInstalls).astype(int)
-
     # preprocessing Type
     typeType = data["Type"].unique()
     typeDict = {}
@@ -99,6 +108,11 @@ if __name__ == '__main__':
         cont += 1
     result["Genres"] = data["Genres"].map(genresDict).astype(int)
 
+    # preprocessing last updated
+
+    result["Last Updated"] = pd.to_datetime(result["Last Updated"])
+    curtime = datetime.now()
+    result["Last Updated"] = curtime - result["Last Updated"]
     # preprocessing Rating
 
     result["Rating"] = data["Rating"].astype('float32')
@@ -110,9 +124,11 @@ if __name__ == '__main__':
 
     x = nparray.shape[1]
 
-    for i in range(2, x):
-        print("pearson correlation coefficient: " + list[1] + " and " + list[i])
-        print(pearsonr(nparray[:,1].astype(float),nparray[:,i].astype(float)))
+    # for i in range(2, x):
+    #     print("pearson correlation coefficient: " + list[1] + " and " + list[i])
+    #     print(pearsonr(nparray[:,1].astype(float),nparray[:,i].astype(float)))
+
+
 
 
     # preprocessing Sentiment
@@ -147,6 +163,21 @@ if __name__ == '__main__':
     de.dropna(axis=0, inplace=True)
     print(de.groupby(["App"]).mean())
     de.reset_index(inplace=True)
+
+    ## z-score
+    result["Reviews Zscore"] = result["Reviews"]
+    result["Reviews Zscore"] = (result["Reviews Zscore"] - result["Reviews"].mean()) / result["Reviews"].std()
+    result["Size Zscore"] = result["Size"]
+    result["Size Zscore"] = (result["Size Zscore"] - result["Size"].mean()) / result["Size"].std()
+    result["Installs Zscore"] = result["Installs"]
+    result["Installs Zscore"] = (result["Installs Zscore"] - result["Installs"].mean()) / result["Installs"].std()
+    result["Price Zscore"] = result["Price"]
+    result["Price Zscore"] = (result["Price Zscore"] - result["Price"].mean()) / result["Price"].std()
+    result["Last Updated Zscore"] = result["Last Updated"]
+    result["Last Updated Zscore"] = (result["Last Updated"] - result["Last Updated"].mean()) / result["Last Updated"].std()
+
+    # category one_hot
+    result = pd.get_dummies(result, columns=['Category'])
 
     de.to_csv("sentiment.csv", encoding="utf-8")
     result.to_csv("fisttable.csv", encoding="utf-8")
